@@ -18,14 +18,17 @@ client.once(Events.ClientReady, (readyClient) => {
 client.commands = new Collection();
 (async () => {
   const folderpath = path.join(__dirname + "/commands/");
-  const commandFolders = fs.readdirSync(folderpath);
-  for (const folder of commandFolders) {
+  const commandf = fs.readdirSync(folderpath);
+  for (const folder of commandf) {
     const commandpath = path.join(folderpath + folder);
-    const commandf = fs
-      .readdirSync(commandpath)
-      .filter((file) => file.endsWith(".js"));
+    if (fs.statSync(commandpath).isDirectory()) {
+      const commandf = fs
+        .readdirSync(commandpath)
+        .filter((file) => file.endsWith(".js"));
+    }
     for (const file of commandf) {
-      const fpath = path.join(commandpath + file);
+      const fpath = path.join(commandpath);
+      console.log(`Processing file: ${fpath}`);
       const command = await import(fpath);
       if ("data" in command && "execute" in command) {
         client.commands.set(command.data.name, command);
@@ -36,6 +39,9 @@ client.commands = new Collection();
       }
     }
   }
-
+  client.on(Event.InteractionCreate, async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+    console.log(interaction);
+  });
   client.login(DISCORD_TOKEN);
 })();
